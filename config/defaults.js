@@ -24,9 +24,12 @@ export default {
         stateSerializer: '__vitamin__/src/shared/defaultStateSerializer',
     },
     client: {
+        name: 'client',
         buildPath: 'public',
-        filename: 'client_bundle.[hash].js',
+        filename: '[name]_bundle.[hash].js',
         serviceWorker: false,
+        entries: {},
+        chunks: {},
     },
     rootElementId: 'vitamin-app',
 };

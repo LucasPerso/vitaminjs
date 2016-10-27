@@ -10,10 +10,13 @@ function clientConfig(options) {
     const hotMiddlewareEntry =
         `webpack-hot-middleware/client?path=${appConfig.publicPath}/__webpack_hmr`;
     return mergeWith({}, config(options), {
-        entry: [
-            vitaminResolve('src', 'client', 'index.jsx'),
-            ...(options.hot ? [hotMiddlewareEntry] : []),
-        ],
+        entry: {
+            [appConfig.client.name]: [
+                vitaminResolve('src', 'client', 'index.jsx'),
+                ...(options.hot ? [hotMiddlewareEntry] : []),
+            ],
+            ...appConfig.client.entries,
+        },
         output: {
             path: appConfig.client.buildPath,
             filename: appConfig.client.filename,
@@ -28,6 +31,26 @@ function clientConfig(options) {
                 }],
         },
         plugins: [
+            new webpack.optimize.CommonsChunkPlugin({
+                name: appConfig.client.name,
+                // create a additional async chunk for the common modules
+                // which is loaded in parallel to the requested chunks
+                // async: appConfig.http2,
+            }),
+            ...(Object.keys(appConfig.client.entries).map(entryKey => (
+                new webpack.optimize.CommonsChunkPlugin({
+                    name: entryKey,
+                    children: true,
+                    // async: appConfig.http2,
+                })
+            ))),
+            ...(Object.keys(appConfig.client.chunks).map(chunkKey => (
+                new webpack.optimize.CommonsChunkPlugin({
+                    name: chunkKey,
+                    children: true,
+                    minChunks: Infinity,
+                })
+            ))),
             ...(options.hot ? [
                 new webpack.NoErrorsPlugin(),
                 new webpack.optimize.OccurrenceOrderPlugin(),
